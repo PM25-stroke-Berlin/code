@@ -1,0 +1,246 @@
+---
+  title: "A descriptive time-stratified case-crossover study assessing the association of PM 2.5 and stroke between February 2017 and December 2020 in Berlin, Germany: analyses dataset"
+  author: "Toivo Glatz & Jakob Beilstein"
+output: html_document
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(lubridate)
+library(tidyverse)
+library(utils) 
+library(survival) 
+library(mgcv) 
+
+# session info
+sessionInfo()
+
+# working directory
+setwd("\\IS_TIA\\")
+
+# load("07082024_exposure.RData")
+# load("12032024_exposure_pandemic.RData")
+# load("07082024_exposure_only_pandemic.RData")
+# load("12032024_exposure_Z_010.RData")
+# load("12032024_exposure_Z_042.RData")
+# load("12032024_exposure_Z_171.RData")
+ 
+# load("08082024_outcome.RData")
+# load("08082024_outcome_pandemic.RData")
+# load("12032024_km_outcome_zip.RData")
+# load("08082024_outcome_only_pandemic.RData")
+# 
+# load("07082024_DWD.RData")
+# load("26072024_DWD_pandemic.RData")
+# load("07082024_DWD_only_pandemic.RData")
+# DWD_dat <- DWD_dat
+
+# dist_tbl_csv <- read.csv2("05032024_dist_tbl.csv") # ALL STATIONS
+# dist_tbl_csv <- read.csv2("18042024_dist_tbl_BG.csv") # BG STATIONS
+# dist_tbl_csv <- dist_tbl_csv[-c(1)]
+```
+
+## 0. preparation distance variable (sens analysis)
+```{r, distance, echo=FALSE}
+# dist_tbl <- dist_tbl_csv %>%
+#   rename("zip_loc" = "zip_code")
+# 
+# dat_zip_dist <- left_join(dat_zip, dist_tbl, by="zip_loc")
+# 
+#  dat_010 <- dat_zip_dist %>%
+# # dat_042 <- dat_zip_dist %>%
+# # dat_171 <- dat_zip_dist %>%
+#   filter(dist_to_MC_010 <= 2)
+# #  filter(dist_to_MC_042 <= 2)
+# #  filter(dist_to_MC_171 <= 2)
+  
+```
+
+## From time series data structure to semi-expanded case-crossover data structure
+
+## 1. define case time: CAVEAT adm_time OR symp_onset_time
+```{r, case-exposure, echo=FALSE}
+# define case_time 
+
+# dat <- dat_only_pandemic %>% 
+dat <- dat_pandemic %>%
+# dat <- dat %>%
+# dat <- dat_010 %>%
+# dat <- dat_042 %>%
+# dat <- dat_171 %>%
+#   rename(case_time = onset_symp_time)
+ 
+# dat$dist_to_MC_042 <- dat$dist_to_MC_171 <- NULL
+# dat$dist_to_MC_010 <- dat$dist_to_MC_171 <- NULL
+# dat$dist_to_MC_010 <- dat$dist_to_MC_042 <- NULL
+
+```
+
+## 2. add control dates
+```{r control}
+# add time-stratified control dates
+
+dat <-  dat %>% 
+  mutate(control1=case_time- minutes(7 * 24 * 60)) %>% 
+  mutate(control2=case_time- minutes(14 * 24 * 60)) %>% 
+  mutate(control3=case_time- minutes(21 * 24 * 60)) %>% 
+  mutate(control4=case_time- minutes(28 * 24 * 60)) %>% 
+  mutate(control5=case_time+ minutes(7 * 24 * 60)) %>% 
+  mutate(control6=case_time+ minutes(14 * 24 * 60)) %>% 
+  mutate(control7=case_time+ minutes(21 * 24 * 60)) %>% 
+  mutate(control8=case_time+ minutes(28 * 24 * 60)) %>% 
+  mutate(control1=as_datetime(ifelse(month(control1) == month(case_time), control1, NA))) %>% 
+  mutate(control2=as_datetime(ifelse(month(control2) == month(case_time), control2, NA))) %>% 
+  mutate(control3=as_datetime(ifelse(month(control3) == month(case_time), control3, NA))) %>% 
+  mutate(control4=as_datetime(ifelse(month(control4) == month(case_time), control4, NA))) %>% 
+  mutate(control5=as_datetime(ifelse(month(control5) == month(case_time), control5, NA))) %>% 
+  mutate(control6=as_datetime(ifelse(month(control6) == month(case_time), control6, NA))) %>% 
+  mutate(control7=as_datetime(ifelse(month(control7) == month(case_time), control7, NA))) %>% 
+  mutate(control8=as_datetime(ifelse(month(control8) == month(case_time), control8, NA))) 
+
+ dat_longer <- dat %>%
+    pivot_longer(-c("pat_id_exp", "age", "sex", "zip_loc", "icd10","living_pre","walk_ability_pre", "prior_event", "adm_time", "case_time", "aht", "dm","hlp","atr_fibr","ci","chd","pm","pavk","nic","nic_quant","le_1","transf","transf_number","displ_numb","month_year", "onset_symp_time2", "adm_before"),  names_to = "control_numbers", values_to = "control_dates") 
+
+# # only for distance dataset
+# dat_longer <- dat %>%
+#   pivot_longer(-c("pat_id_exp", "age", "sex", "zip_loc", "icd10","living_pre","walk_ability_pre", "prior_event", "adm_time", "case_time", "aht", "dm","hlp","atr_fibr","ci","chd","pm","pavk","nic","nic_quant","le_1","transf","transf_number","displ_numb", "dist_to_MC_010"),  names_to = "control_numbers", values_to = "control_dates")
+```
+
+## 3. add stroke index, strata and general date column.
+```{r, index}
+dat_analysis <- dat_longer %>% 
+  mutate(stroke = ifelse(!is.na(control_dates), 0, 1)) %>% 
+  select(-c(control_numbers)) %>% 
+  distinct() %>% 
+  mutate(case_time = ifelse(stroke==1, case_time, NA)) %>% 
+  mutate(case_time = as_datetime(case_time)) %>% 
+  mutate(strata=pat_id_exp)%>% 
+  mutate(all_dates = coalesce(control_dates, case_time))
+
+# remove environment
+#rm(dat_longer, dat)
+```
+
+## 4. add pm2.5-exposure data
+```{r, pm25}
+# prepare exposure data & lags
+# median_exposure <- exposure_Z_010 %>% 
+# median_exposure <- exposure_Z_042 %>% 
+# median_exposure <- exposure_Z_171 %>% 
+ median_exposure <- exposure_pandemic %>% 
+# median_exposure <- exposure_only_pandemic %>% 
+#median_exposure <- exposure %>% 
+  subset(select=-c(case_date, case_time_only)) %>% 
+  rename(all_dates = case_time) %>% 
+  distinct()  
+
+# merge
+dat_analysis <- left_join(dat_analysis, median_exposure, by="all_dates")
+```
+
+## 4. add adjustment data
+```{r adjustment}
+# prepare meteorological data
+ day_DWD <- DWD_dat_pandemic %>% 
+# day_DWD <- DWD_dat_only_pandemic %>% 
+# day_DWD <- DWD_dat %>% 
+  #select(starts_with("day_"))
+  rename(all_dates = case_date) %>% 
+  distinct()  
+# merge
+dat_analysis <- left_join(dat_analysis, day_DWD, by="all_dates")
+
+
+# prepare holiday data
+holidays <- date(c("2017-01-01", "2017-03-08", "2017-04-14", "2017-04-17", "2017-05-01", "2017-05-25", "2017-06-05", "2017-10-03", "2017-12-25", "2017-12-26","2017-12-31", "2018-01-01", "2018-03-08", "2018-03-30", "2018-04-02", "2018-05-01", "2018-05-10", "2018-05-21", "2018-10-03", "2018-12-25", "2018-12-26", "2018-12-31", "2019-01-01", "2019-03-08", "2019-04-19", "2019-04-22", "2019-05-01", "2019-05-30", "2019-06-10", "2019-10-03", "2019-12-25", "2019-12-26", "2019-12-31", "2020-01-01", "2020-03-08", "2020-04-10", "2020-04-13", "2020-05-01", "2020-05-21", "2020-06-01", "2020-10-03", "2020-12-25", "2020-12-31"))
+
+dat_analysis <- dat_analysis %>%
+  mutate(all_date = date(all_dates))
+
+holidays <- as.Date(holidays)
+dat_analysis$all_date <- as.Date(dat_analysis$all_date)
+dat_analysis$holidays <- ifelse(dat_analysis$all_date %in% holidays, "Yes", "No")
+
+
+
+
+# prepare pandemic data
+pandemic <- seq(as.Date("2020-03-14"), as.Date("2020-12-31"), by = "day")
+
+
+pandemic_lockdown1 <- seq(as.Date("2020-03-14"), as.Date("2020-06-20"), by = "day")
+
+pandemic_lockdown2 <- seq(as.Date("2020-11-02"), as.Date("2020-12-31"), by = "day")
+
+lockdown <- c(pandemic_lockdown1, pandemic_lockdown2)
+lockdown <- as.Date(lockdown)
+dat_analysis$lockdown <- ifelse(dat_analysis$all_date %in% lockdown, "Yes", "No")
+
+pandemic <- as.Date(pandemic)
+dat_analysis$pandemic <- ifelse(dat_analysis$all_date %in% pandemic, "Yes", "No")
+
+
+
+```
+
+## 5. reorder datset and export
+```{r reorder}
+# define groups of variables and change the order
+index <- c("pat_id_exp", "strata")
+descriptive <- c("age", "sex", "icd10", "prior_event","zip_loc")
+#descriptive <- c("age", "sex", "icd10", "prior_event","zip_loc", "dist_to_MC_010")  # ONLY for distance dataset
+transfer <- c("transf", "displ_numb", "transf_number")
+comorb <- c("prior_event", "aht", "dm","hlp","atr_fibr","ci","chd","pm","pavk","nic","nic_quant","le_1", "walk_ability_pre","living_pre")
+dates <- c("stroke", "adm_time", "case_time", "control_dates", "all_dates")
+pm25 <- c("pm25_median_h", "pm25_median_h_Z")
+adjustment <- c("holidays","pandemic","lockdown","hour_med_AP","hour_med_RH", "hour_med_TM")
+
+#"pm25_med_roll1h", "pm25_med_roll2h", "pm25_med_roll1h_sIQR","pm25_med_roll2h_sIQR","pm25_med_lag_1h", #"pm25_med_lag_2h","pm25_med_lag_1h_sIQR","pm25_med_lag_1h_sIQR","pm25_med_lag_2h_sIQR","pm25_med_lag_2h_sIQR"
+
+# reorder
+dat_analysis <- select(dat_analysis, all_of(index),all_of(descriptive),all_of(dates), all_of(pm25), all_of(adjustment), starts_with("pm25_med"), starts_with("AP_med"), starts_with("RH_med"), starts_with("TM_med"), all_of(comorb), all_of(transfer))
+
+# remove environment
+#rm(index, descriptive, transfer, comorb, dates, pm25, adjustment)
+#rm(day_DWD, DWD_dat, holidays)
+#rm(median_exposure, exposure)
+
+# add dummy for gam()
+#dat_analysis$dummy <- rep(1,nrow(dat_analysis))
+
+# other dataset
+#dat_analysis_Z_010 <- dat_analysis
+#dat_analysis_Z_042 <- dat_analysis
+#dat_analysis_Z_171 <- dat_analysis
+#dat_analysis_pandemic <- dat_analysis 
+#dat_analysis_only_pandemic <- dat_analysis 
+#dat_analysis_pan_adj <- dat_analysis
+
+
+# export
+#save(dat_analysis, file ="08082024_dat_analysis.RData")
+#save(dat_analysis_pan_adj, file ="\08082024_dat_analysis_pan_adj.RData") #
+#save(dat_analysis_pandemic, file ="08082024_dat_analysis_pandemic.RData")
+#save(dat_analysis_only_pandemic, file ="08082024_dat_analysis_only_pandemic.RData")
+#save(dat_analysis_Z_010, file ="23042024_dat_analysis_Z_010.RData")
+#save(dat_analysis_Z_042, file ="23042024_dat_analysis_Z_042.RData")
+#save(dat_analysis_Z_171, file ="23042024_dat_analysis_Z_171.RData")
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
