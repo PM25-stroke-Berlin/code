@@ -1,5 +1,5 @@
 ---
-title: "A descriptive time-stratified case-crossover study assessing the association of PM 2.5 and stroke between February 2017 and December 2020 in Berlin, Germany"
+title: "The short-term association of PM2.5 on stroke: A time-stratified case-crossover study in Berlin, Germany"
 author: "Toivo Glatz & Jakob Beilstein"
 date: "Created on: `r format(Sys.time(), '%B %d, %Y - %H:%M:%S')`"
 output:
@@ -12,33 +12,36 @@ editor_options:
   chunk_output_type: console
 ---
 
-```{js, include=FALSE}
-document.addEventListener("DOMContentLoaded", function() {
-  $(".leave-tabset").removeClass("tab-pane tabbed-pane");
-}, false);
-```
+<!-- ```{js, include=FALSE} -->
+<!-- document.addEventListener("DOMContentLoaded", function() { -->
+<!--   $(".leave-tabset").removeClass("tab-pane tabbed-pane"); -->
+<!-- }, false); -->
+<!-- ``` -->
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
+.libPaths("T:\\Dokumente\\R\\win-library\\4.1\\")
 library(lubridate)
 library(dplyr)
 library(tidyverse)
-library(utils) 
-library(survival) 
-library(mgcv) 
-library(qwraps2) 
-library(labelled) 
-library(stats) 
-library(knitr) 
-library(modelsummary) 
-library(hms) 
-library(AICcmodavg) 
+library(utils) #sessionInfo()
+library(survival) #clogit()
+library(mgcv) #gam()
+library(qwraps2) # summary_table()
+library(labelled) # var_label()
+library(stats) # acf()
+library(knitr) #knit()
+library(modelsummary) #modelsummary()
+library(data.table) #depend
+library(hms) #hms()
+library(AICcmodavg) #aictab()
 library(kableExtra)
 library(broom.mixed)
-library(car) 
+library(car) # vif()
+library(fpp2) 
 library(ggplot2)
 library(dotwhisker)
+library(where) #depend
 library(ggflowchart)
 library(grid)
 library(sf)
@@ -51,50 +54,59 @@ library(scales)
 options(qwraps2_markup = "markdown")
 options(digits = 5)
 
-# session info
-sessionInfo()
+
 
 # working directory
-setwd("042024_code_review")
+setwd("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\042024_code_review")
 ```
+
 
 ```{r load, include=FALSE}
 # load data
+#load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\12032024_exposure.RData")
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\07082024_exposure.RData")
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\12032024_exposure_pandemic.RData")
+#load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\18042024_exposure_only_pandemic.RData")
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\07082024_exposure_only_pandemic.RData") #26072024_exposure_only_pandemic.RData
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\26062024_BLUME_raw_prep.RData")
 
-load("07082024_exposure.RData")
-load("12032024_exposure_pandemic.RData")
-load("07082024_exposure_only_pandemic.RData") 
-load("26062024_BLUME_raw_prep.RData")
 
-load("08082024_outcome.RData")
-load("08082024_outcome_pandemic.RData")
-load("12032024_km_outcome_zip.RData")
+#load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\12032024_exposure_Z_010.RData")
+#load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\12032024_exposure_Z_042.RData")
+#load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\12032024_exposure_Z_171.RData")
 
-load("07082024_DWD.RData")
-load("26072024_DWD_pandemic.RData")
-load("07082024_DWD_only_pandemic.RData")
 
-load("08082024_dat_analysis.RData")
-load("08082024_dat_analysis_pandemic.RData")
-load("08082024_dat_analysis_only_pandemic.RData")
-load("08082024_dat_analysis_pan_adj.RData")
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\08082024_outcome.RData")
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\08082024_outcome_pandemic.RData")
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\12032024_km_outcome_zip.RData")
 
-load("23042024_dat_analysis_Z_010.RData")
-load("23042024_dat_analysis_Z_042.RData")
-load("23042024_dat_analysis_Z_171.RData")
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\07082024_DWD.RData")
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\26072024_DWD_pandemic.RData")
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\07082024_DWD_only_pandemic.RData")
+
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\08082024_dat_analysis.RData")
+#load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\23042024_dat_analysis.RData")
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\08082024_dat_analysis_pandemic.RData")
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\08082024_dat_analysis_only_pandemic.RData")
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\08082024_dat_analysis_pan_adj.RData")
+
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\23042024_dat_analysis_Z_010.RData")
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\23042024_dat_analysis_Z_042.RData")
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\23042024_dat_analysis_Z_171.RData")
 dat_analysis_clust <- bind_rows(dat_analysis_Z_010, dat_analysis_Z_042, dat_analysis_Z_171)
+#save(dat_analysis_clust, file = "S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\12032024_dat_analysis_clust.RData")
 
-
-stroke_dat <-  read_csv("31-08-31_1431_Export_B-SPATIAL_PM25.csv") 
+stroke_dat <-  read_csv("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\Data\\31-08-31_1431_Export_B-SPATIAL_PM25.csv") 
 stroke_dat <- stroke_dat %>% 
   mutate(year = year(stroke_dat$onset_symp_time), month = month(stroke_dat$onset_symp_time))
 
-load("model11_gam.RData")
-load("model11_gam_pan_adj.RData")
-load("model11_gam_lock_adj.RData")
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\model11_gam.RData")
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\model11_gam_pan_adj.RData")
+load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\model11_gam_lock_adj.RData")
 
-tbl_holiday <- read.csv2("28102023_public_holidays_table.csv")
+tbl_holiday <- read.csv2("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\28102023_public_holidays_table.csv")
 
+#load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\19122023_hour_day_exposure.RData") # for ACF day calculation
 
 ```
 
@@ -107,7 +119,8 @@ tbl_holiday <- read.csv2("28102023_public_holidays_table.csv")
 
 * **Primarily analysis**:       
 <br><br>
-  **RQ1**: Is there an **association between short-term PM2.5 exposure and the odds of stroke (time of the symptom onset) among participants in the B-SPATIAL cohort**?
+  **RQ1**: Is there an **association between short-term increases in PM2.5 concentration and the odds of ischemic stroke and transient ischemic attacks among participants of the Berlin-based B-SPATIAL stroke registry**?
+
 <br><br>
 <br><br>
 <br><br>
@@ -118,21 +131,25 @@ tbl_holiday <- read.csv2("28102023_public_holidays_table.csv")
 <br><br>
 <br><br> 
 
+```{r sessioninfo}
+# session info
+sessionInfo()
+```
 
 ### Time Frame {.tabset}
 
-* The B-SPATIAL registry ran from 2016-2021. 
+* The study population included patients from the “Berlin-SPecific Acute Treatment in Ischemic or hAemorrhagic Stroke With Long Term Follow-up” (B-SPATIAL, NCT03027453) registry that contains all stroke cases in Berlin, Germany from January 2016 to April 2021 and includes additional pre-hospital and in-hospital variables.
 <br>
 <br>
 * Admission numbers at the begin and the end of the official time frame showed fluctuations in hospital admissions (e.g. due to roll-out period). Additionally, one station (MC171) measuring PM2.5 was put into operation in the mid of 2016.
 <br>
 <br>
-* To prevent selection bias, **this study uses only stroke data from February 1, 2017 to December 31, 2020**. Also see plot below.
+* **This study uses only stroke data from February 1, 2017 to December 31, 2020**. Also see plot below.
 <br>
 <br>
 <br>
 <br>
-![Javatpoint](hist_freq_adm_bspatial.png) 
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\hist_freq_adm_bspatial.png) 
 
 
 
@@ -184,13 +201,13 @@ n_inclusion3_df <- dat_raw %>%
    
 # identify duplicates
 duplicates <- n_inclusion3_df %>%
-  mutate(int_transf_numb=ifelse(!is.na(transf_number), transf_number, ifelse(!is.na(displ_numb), displ_numb, NA))) %>% 
+  mutate(int_transf_numb=ifelse(!is.na(transf_number), transf_number, ifelse(!is.na(displ_numb), displ_numb, NA))) %>% # mutate variable with all transfer numbers
   select(pat_id_exp, adm_time, onset_symp_time, sex, age, transf, int_transf_numb, transf_number, displ_numb, adm_before, onset_symp_time2, everything()) %>% 
   filter(int_transf_numb==transf_number | int_transf_numb==displ_numb) %>% # filter by transf_number 
   arrange(onset_symp_time, pat_id_exp) %>% 
   group_by(int_transf_numb) %>% 
   fill(transf_number, displ_numb, living_pre, walk_ability_pre, aht, dm, atr_fibr, prior_event, hlp, chd, pm, le_1, ci, pavk, nic, nic_quant, zip_loc, .direction = "downup") %>% 
-  filter(!is.na(transf_number) & !is.na(displ_numb))  
+  filter(!is.na(transf_number) & !is.na(displ_numb))  # there were some single cases inside with only transf_numb or displ_numb but with no other match in other row
 
 exclude_id <- duplicates %>% 
   group_by(int_transf_numb) %>% 
@@ -301,13 +318,15 @@ fc_main_gg +
 
 ### Inclusion & exclusion criteria {.tabset}
 
-* INCLUSION: All Individuals will be included with the **discharge diagnosis of ischemic stroke and transient ischemic attack**.
+* Inclusion: The study population consisted of **patients with the primary discharge diagnosis of ischemic stroke or TIA**.
 <br>
 <br>
-* EXCLUSION: All Individuals will be excluded if **symptom onset time is not available or implausible**.
+* Exclusion: **Patients with other discharge diagnoses (e.g., hemorrhagic stroke, stroke mimics), implausible or missing symptom onset times or those identified as transfer patients** were excluded 
 <br>
 <br>
-* Within the case-crossover dsign the case-control-ratio is **3.4**.Also see table below.
+* A total of 9,565 stroke patients from February 1, 2017, to December 31, 2020, were included in the final analyses. The case-control-ratio was 3.4.
+<br>
+<br>
 ```{r, stroke_types, results ='asis', echo=TRUE}
 summary_types <- list(
    "Diagnosis at discharge (ICD10)" = list(
@@ -492,8 +511,9 @@ mutate(weekday = weekdays(all_time)) %>%
 #dat_total$holidays <- ifelse(dat_total$all_date %in% holidays, "Yes", "No")
 
 dat_total <- dat_total %>%   
-  mutate(time = as_hms(ymd_hms(all_time))) 
-dat_total$time <- hour(dat_total$time)
+#  mutate(time = as_hms(ymd_hms(all_time))) 
+  mutate(time = hour(all_time))
+#dat_total$time <- hour(dat_total$time)
 
 dat_total <- dat_total  %>% 
   mutate(time1 = ifelse(time %in% first_time, "Yes", "No")) %>% 
@@ -532,9 +552,11 @@ mutate(weekday = weekdays(case_time)) %>%
   mutate(case_date = date(case_time))
 
 dat_cases <- dat_cases %>%   
-  mutate(holiday = case_when(adm_time %in% holidays ~ "Yes", TRUE ~ "No")) %>% 
-  mutate(time = as_hms(ymd_hms(case_time))) 
-dat_cases$time <- hour(dat_cases$time)
+  mutate(holidays = case_when(adm_time %in% holidays ~ "Yes", TRUE ~ "No")) %>% 
+  #mutate(time = as_hms(ymd_hms(case_time))) 
+  mutate(time = hour(case_time))
+#dat_cases$time <- hour(dat_cases$time)
+
 
 dat_cases <- dat_cases  %>% 
   mutate(time1 = ifelse(time %in% first_time, "Yes", "No")) %>% 
@@ -574,8 +596,9 @@ dat_control <- dat_control %>%
   mutate(control_date = date(control_time))
 
 dat_control <- dat_control %>%   
-  mutate(time = as_hms(ymd_hms(control_time))) 
-dat_control$time <- hour(dat_control$time)
+#  mutate(time = as_hms(ymd_hms(control_time))) 
+  mutate(time = hour(control_time))
+#dat_control$time <- hour(dat_control$time)
 
 dat_control <- dat_control  %>% 
   mutate(time1 = ifelse(time %in% first_time, "Yes", "No")) %>% 
@@ -611,7 +634,7 @@ tbl_time_control <- summary_table(dat_control, summary_time_control)
 
 # putting columns together and print final version:
 table_time_complete <- cbind(tbl_time_total, tbl_time_case, tbl_time_control)
-colnames(table_time_complete) <- c("Total", "Cases", "Controls")
+colnames(table_time_complete) <- c("", "Total", "Cases", "Controls")
 print(table_time_complete, rtitle = "Total number of all cases and controls stratified by weekday, daytime and public holiday")
 
 
@@ -650,41 +673,38 @@ print(dens_symp_onset_cases_controls)
 ## Exposure data: BLUME network {.tabset .tabset-fade .tabset-pills}
 
 ### PM 2.5 monitoring stations {.tabset}
-* In total, **twelve PM2.5 monitoring stations are available for Berlin**, but only **three of them are classified as "inner city background stations" (MC010, MC042, MC171)**. One station (MC171) was put into operation in the mid of 2016 which also contributed to the decision to start this analysis in February 2017.
+* Hourly PM2.5 air pollution data were obtained from the **Berlin air quality monitoring network** (BLUME). This network consists of 12 monitoring stations across Berlin, classified into three categories depending on their location at the outer limit of the city, on main streets, or in urban residential areas.
 <br>
 <br>
-* Although selecting only three of the twelve monitoring stations, **Pearson and Spearman correlation coefficients among all twelve stations and between the three stations are high** (see the correlation-plots below). 
+* **Hourly concentrations from the three urban residential stations were combined into a spatial median air pollution concentration on an hourly basis**.
 <br>
 <br>
-* According to the definition of the German Federal Environmental Agency the **inner city background stations represent air pollution concentrations typical for the air quality in urban areas**. Emission values are constituted both out of the city itself (e.g. traffic, heating, industry) and of the large-scale, urban surrounding area. 
+* Although selecting only three of the twelve monitoring stations, **Pearson and Spearman correlation coefficients among all twelve stations and between the three stations are high**. 
+<br>
+<br>
+* According to the definition of the German Federal Environmental Agency the **urban residential stations represent air pollution concentrations typical for the air quality in urban areas**.
 <br>
 <br>
 * Real-time samples were collected using automatic stray light measurements (Grimm EDM-180 measuring device) and validated retrospectively by laboratory gravimetric reference methods based on 24-hour filter dust, adhering to German law (39th Ordinance on the Implementation of the Federal Immission Control Act (39. BImSchV)) and EU directive (2008/50/EG). 
 <br>
 <br>
-* BLUME sensor network data are available on their website: https://luftdaten.berlin.de/pollution/pm25
+* The BLUME PM2.5 air pollution data are available on the website https://luftdaten.berlin.de/pollution/pm25
 <br>
 <br>
-![Javatpoint](map_berlin_BLUME.png) 
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\map_berlin_BLUME.png) 
 <br><br>
-![Javatpoint](map_berlin_BLUME_street.png) 
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\map_berlin_BLUME_street.png) 
 <br><br>
-![Javatpoint](plot_BLUME-background_month.png)  
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\plot_BLUME-background_month.png)  
 <br><br>
-![Javatpoint](corrplot_BLUMEback.png)  
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\corrplot_BLUMEback.png)  
 <br><br>
-![Javatpoint](corrplot_BLUMEall.png)  
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\corrplot_BLUMEall.png)  
 
 
 
 ### PM 2.5 values {.tabset}
-* Missing data for the hourly PM2.5 concentrations from the single background stations within the BLUME network were below 0.01 %.
-<br>
-<br>
-* Single hourly PM2.5 concentrations from the three background stations were extracted and **combined into a single median value on an hourly level** for this analysis. Subsequently, those **values were matched with the rounded hourly symptom onset times**, thus, served as short-term PM2.5 exposure measure.
-<br>
-<br>
-* PM2.5 data is for **all cases and controls available**.
+* **Hourly concentrations from the three urban residential stations were combined into a spatial median air pollution concentration on an hourly basis**, which was then matched to the symptom onset times rounded to the closest full hour. Symptom onset times were rounded to the nearest full hour.
 <br>
 <br>
 ```{r, expo_miss, results='asis', echo=TRUE}
@@ -754,15 +774,15 @@ print(tblq_pm25_med_cc)
 ```{r, pm25_med_raw, results='asis',echo=TRUE}
 BLUME <- BLUME_raw_prep
 # date & time variables (52.608 rows)
-table(is.na(BLUME$date)) 
-table(is.na(BLUME$time)) 
-table(is.na(BLUME$date_time)) 
+table(is.na(BLUME$date)) #no missings
+table(is.na(BLUME$time)) #no missings
+table(is.na(BLUME$date_time)) #no missings
 
 # 010 Wedding (BACKGROUND)
-table(is.na(BLUME$"MC010")) 
+table(is.na(BLUME$"MC010")) # 103 missings
 colMeans(is.na(BLUME)) # 0.004 
 hist(BLUME$"MC010") # distribution skewed right // plausible
-qqnorm(BLUME$"MC010") # normally distributed with outliers 
+qqnorm(BLUME$"MC010") # normally distributed with outliers (?)
 qqline(BLUME$"MC010")
 median(BLUME$"MC010"[!is.na(BLUME$"MC010")]) # 10.65 µg/m3
 min(BLUME$"MC010"[!is.na(BLUME$"MC010")]) # 0.95 µg/m3
@@ -771,36 +791,35 @@ quantile(BLUME$"MC010"[!is.na(BLUME$"MC010")], probs = c(0.0, 0.05, 0.25, 0.5, 0
 
 
 # 042Neukölln (BACKGROUND)
-table(is.na(BLUME$"MC042")) 
-colMeans(is.na(BLUME)) 
-hist(BLUME$"MC042") 
-qqnorm(BLUME$"MC042") 
+table(is.na(BLUME$"MC042")) # 251 missings
+colMeans(is.na(BLUME)) # 0.009 
+hist(BLUME$"MC042") # distribution skewed right // plausible
+qqnorm(BLUME$"MC042") # normally distributed with outliers (?)
 qqline(BLUME$"MC042")
-median(BLUME$"MC042"[!is.na(BLUME$"MC042")]) 
-min(BLUME$"MC042"[!is.na(BLUME$"MC042")]) 
-max(BLUME$"MC042"[!is.na(BLUME$"MC042")]) 
+median(BLUME$"MC042"[!is.na(BLUME$"MC042")]) # 10.99 µg/m3
+min(BLUME$"MC042"[!is.na(BLUME$"MC042")]) # 1.39 µg/m3
+max(BLUME$"MC042"[!is.na(BLUME$"MC042")]) # 219.07 µg/m3
 quantile(BLUME$"MC042"[!is.na(BLUME$"MC042")], probs = c(0.0, 0.05, 0.25, 0.5, 0.75, 0.95, 1.0)) 
 
 
 # 171 Mitte (BACKGROUND)
-table(is.na(BLUME$"MC171")) 
-colMeans(is.na(BLUME)) 
-hist(BLUME$"MC171") 
-qqnorm(BLUME$"MC171") 
+table(is.na(BLUME$"MC171")) # 71 missings 
+colMeans(is.na(BLUME)) # 0.003 
+hist(BLUME$"MC171") # distribution skewed right // plausible
+qqnorm(BLUME$"MC171") # normally distributed with outliers (?)
 qqline(BLUME$"MC171")
-median(BLUME$"MC171"[!is.na(BLUME$"MC171")]) 
-min(BLUME$"MC171"[!is.na(BLUME$"MC171")]) 
-max(BLUME$"MC171"[!is.na(BLUME$"MC171")]) 
+median(BLUME$"MC171"[!is.na(BLUME$"MC171")]) # 11.2 µg/m3
+min(BLUME$"MC171"[!is.na(BLUME$"MC171")]) # 0.6 µg/m3
+max(BLUME$"MC171"[!is.na(BLUME$"MC171")]) # 303.67 µg/m3
 quantile(BLUME$"MC171"[!is.na(BLUME$"MC171")], probs = c(0.0, 0.05, 0.25, 0.5, 0.75, 0.95, 1.0)) 
 ```
 
 
 ### PM 2.5 distribution {.tabset}
-
-* Average PM 2.5 values differ when stratifying by weekday, daytime, public holiday or year (see tables below)
+* Average PM 2.5 values differed when stratifying by weekday, daytime, public holiday or year.
 <br>
 <br>
-* The PM 2.5 values are **right-skewed**. The **QQ-plot confirms the right-skewness** and indicates a **rather non-normal distribution** (see plots below).
+* The PM 2.5 values were **right-skewed**. The **QQ-plot confirms the right-skewness** and indicates a **rather non-normal distribution**.
 <br>
 <br>
 
@@ -825,8 +844,9 @@ mutate(weekday = weekdays(all_time)) %>%
 #dat_total$holidays <- ifelse(dat_total$all_date %in% holidays, "Yes", "No")
 
 dat_total <- dat_total %>%   
-  mutate(time = as_hms(ymd_hms(all_time))) 
-dat_total$time <- hour(dat_total$time)
+  #mutate(time = as_hms(ymd_hms(all_time))) 
+  mutate(time = hour(all_time))
+#dat_total$time <- hour(dat_total$time)
 
 dat_total <- dat_total  %>% 
   mutate(time1 = ifelse(time %in% first_time, "Yes", "No")) %>% 
@@ -868,8 +888,9 @@ mutate(weekday = weekdays(case_time)) %>%
 
 dat_cases <- dat_cases %>%   
   mutate(holiday = case_when(adm_time %in% holidays ~ "Yes", TRUE ~ "No")) %>% 
-  mutate(time = as_hms(ymd_hms(case_time))) 
-dat_cases$time <- hour(dat_cases$time)
+ # mutate(time = as_hms(ymd_hms(case_time))) 
+  mutate(time = hour(case_time))
+#dat_cases$time <- hour(dat_cases$time)
 
 dat_cases <- dat_cases  %>% 
   mutate(time1 = ifelse(time %in% first_time, "Yes", "No")) %>% 
@@ -909,8 +930,9 @@ dat_control <- dat_control %>%
   mutate(control_date = date(control_time))
 
 dat_control <- dat_control %>%   
-  mutate(time = as_hms(ymd_hms(control_time))) 
-dat_control$time <- hour(dat_control$time)
+  #mutate(time = as_hms(ymd_hms(control_time))) 
+  mutate(time = hour(control_time))
+#dat_control$time <- hour(dat_control$time)
 
 dat_control <- dat_control  %>% 
   mutate(time1 = ifelse(time %in% first_time, "Yes", "No")) %>% 
@@ -941,8 +963,11 @@ summary_time_pm25_control <- list(
 
 tbl_time_pm25_control <- summary_table(dat_control, summary_time_pm25_control)
 
+
+# putting columns together and print final version:
+
 table_time_pm25_complete <- cbind(tbl_time_pm25_total, tbl_time_pm25_case, tbl_time_pm25_control)
-colnames(table_time_pm25_complete) <- c("Total", "Cases", "Controls")
+colnames(table_time_pm25_complete) <- c(" ", "Total", "Cases", "Controls")
 print(table_time_pm25_complete, rtitle = "Median PM2.5 concentration of all cases and controls stratified by weekday, daytime and public holiday")
 
 ```
@@ -958,8 +983,9 @@ mutate(weekday = weekdays(all_time)) %>%
   mutate(all_date = date(all_time))
 
 dat_sep <- dat_sep %>%   
-  mutate(time = as_hms(ymd_hms(all_time))) 
-dat_sep$time <- hour(dat_sep$time)
+#  mutate(time = as_hms(ymd_hms(all_time))) 
+  mutate(time = hour(all_time))
+#dat_sep$time <- hour(dat_sep$time)
 
 summary_sep_pm25_total <- list(
   "Hourly PM 2.5 concentrations [µg/m3]" = list(
@@ -981,8 +1007,9 @@ mutate(weekday = weekdays(all_time)) %>%
   mutate(all_date = date(all_time))
 
 dat_sep_case <- dat_sep_case %>%   
-  mutate(time = as_hms(ymd_hms(all_time))) 
-dat_sep_case$time <- hour(dat_sep_case$time)
+  #mutate(time = as_hms(ymd_hms(all_time))) 
+  mutate(time = hour(all_time))
+#dat_sep_case$time <- hour(dat_sep_case$time)
 
 summary_sep_case_pm25_total <- list(
   "Hourly PM 2.5 concentrations [µg/m3]" = list(
@@ -1004,8 +1031,9 @@ mutate(weekday = weekdays(all_time)) %>%
   mutate(all_date = date(all_time))
 
 dat_sep_control <- dat_sep_control %>%   
-  mutate(time = as_hms(ymd_hms(all_time))) 
-dat_sep_control$time <- hour(dat_sep_control$time)
+  #mutate(time = as_hms(ymd_hms(all_time))) 
+  mutate(time = hour(all_time))
+#dat_sep_control$time <- hour(dat_sep_control$time)
 
 summary_sep_control_pm25_total <- list(
   "Hourly PM 2.5 concentrations [µg/m3]" = list(
@@ -1018,8 +1046,12 @@ summary_sep_control_pm25_total <- list(
 
 tbl_sep_control_pm25_total <- summary_table(dat_sep_control, summary_sep_control_pm25_total)
 
+
+
+# putting columns together and print final version:
+
 table_sep_pm25_complete <- cbind(tbl_sep_pm25_total, tbl_sep_case_pm25_total, tbl_sep_control_pm25_total)
-colnames(table_sep_pm25_complete) <- c("Total", "Cases", "Controls")
+colnames(table_sep_pm25_complete) <- c(" ","Total", "Cases", "Controls")
 print(table_sep_pm25_complete, rtitle = "Median PM2.5 concentration of all cases and controls")
 
 ```
@@ -1093,8 +1125,10 @@ summary_tbl_2020_pm25 <- list(
     "Missing (%)" = ~ n_perc0(is.na(dat_2020_pm25$pm25_median_h))))
 tbl_2020_pm25 <- summary_table(dat_2020_pm25, summary_tbl_2020_pm25)
 
+
+# merge tables
 tbl_compl_pm25 <- cbind(tbl_compl_dat, tbl_2017_pm25, tbl_2018_pm25, tbl_2019_pm25, tbl_2020_pm25)
-colnames(tbl_compl_pm25) <- c("Total","2017", "2018","2019","2020")
+colnames(tbl_compl_pm25) <- c("", "Total","2017", "2018","2019","2020")
 
 print(tbl_compl_pm25, rtitle = "Median hourly concentration of PM2.5 stratified by years")
 
@@ -1104,15 +1138,15 @@ print(tbl_compl_pm25, rtitle = "Median hourly concentration of PM2.5 stratified 
 
 <br>
 <br>
-![Javatpoint](boxplot_BLUME_month.png)  
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\boxplot_BLUME_month.png)  
 <br><br>
-![Javatpoint](hist_BLUME_background.png)  
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\hist_BLUME_background.png)  
 <br><br>
-![Javatpoint](hist_BLUME_background_days.png)  
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\hist_BLUME_background_days.png)  
 <br><br>
-![Javatpoint](QQplot_BLUME_background.png)  
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\QQplot_BLUME_background.png)  
 <br><br>
-![Javatpoint](QQplot_BLUME_background_days.png) 
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\QQplot_BLUME_background_days.png) 
 
 <br>
 <br>
@@ -1135,6 +1169,7 @@ acf_BLUME_36h_total <- ggAcf(exposure_pandemic$pm25_median_h_Z, lag.max = 36) +
   scale_y_continuous(breaks = seq(0, 1, by = 0.05)) +
   labs(title = "ACF Plot: Total PM 2.5 exposure in the first 36 hours from February 2017 to December 31, 2020") +
   theme_minimal()
+# result: data shows very strong positive correlation (> 0.5-1.0) and a decreasing wave in the first 36 hours.
 print(acf_BLUME_36h_total)
 
 # acf for total study population
@@ -1174,6 +1209,7 @@ acf_BLUME_96h_total <- ggAcf(exposure_pandemic$pm25_median_h_Z, lag.max = 96) +
   scale_y_continuous(breaks = seq(0, 1, by = 0.05)) +
   labs(title = "ACF Plot: Total PM 2.5 exposure in the first 96 hours from February 2017 to December 31, 2020") +
   theme_minimal()
+# result: data shows very strong positive correlation (> 0.5-1.0) and a decreasing wave in the first 96 hours.
 print(acf_BLUME_96h_total)
 
 acf_BLUME_168h_total <- ggAcf(exposure_pandemic$pm25_median_h_Z, lag.max = 168) + 
@@ -1181,6 +1217,7 @@ acf_BLUME_168h_total <- ggAcf(exposure_pandemic$pm25_median_h_Z, lag.max = 168) 
   scale_y_continuous(breaks = seq(0, 1, by = 0.05)) +
   labs(title = "ACF Plot: Total PM 2.5 exposure in the first 168 hours from February 2017 to December 31, 2020") +
   theme_minimal()
+# result: data shows very strong positive correlation (> 0.5-1.0) and a decreasing wave in the first 168 hours.
 print(acf_BLUME_168h_total)
 ```
 
@@ -1193,29 +1230,27 @@ print(acf_BLUME_168h_total)
 
 ## Adjustment data: DWD network {.tabset .tabset-fade .tabset-pills}
 
-### DWD measuring stations {.tabset}
-* Information on **relative humidity (RH [%])**, **air temperature (TM [°C])** and **air pressure (AP [hPa])** were obtained from the Climate Data Center (CDC, https://cdc.dwd.de/portal/) of the German Weather Service (DWD), which maintains five standarized monitoring stations in Berlin. 
+### German Weather Service stations {.tabset}
+* Standardized **hourly data on relative humidity (%), air temperature (°C), and atmospheric pressure (hPa)** measured at a height of two meters were acquired from the **Climate Data Center of the German Weather Service** ( https://cdc.dwd.de/portal/), which maintains five monitoring stations in Berlin.
 <br>
 <br>
-* For this analysis, **values from 3 of 5 monitoring stations were extracted**. Two stations, which only recorded values for TM and AP were excluded, whereas **all stations which recorded at least three parameters were kept**.  
+* Only the **three stations recording all three covariates simultaneously were included in our analysis**. Hourly values for each parameter were determined by calculating the spatial median value of the three stations. 
 <br>
 <br>
 * **Correlation for the respective parameters among all stations** were **very strong** (r>0.99 for air temperature, air pressure & relative humidity).
 <br>
 <br>
-* **Map description**: The 3 background BLUME stations are represented by the green points as seen before. The 3 red points represent the DWD monitoring stations. <br>
+* **Map description**: The 3 background BLUME stations are represented by the green points. The 3 red points represent the monitoring stations of the German Weather Service.
 <br>
-![Javatpoint](23042024_map_all_stations.png) 
+<br>
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\plots\\23042024_map_all_stations.png) 
 <br><br>
 
 
 
-### DWD values {.tabset}
+### Meteorological values {.tabset}
 
-* The hourly and daily values for the respective parameters were determined by **calculating the median value based on the respective monitoring stations (n=3; 400, 403, 427) and their hourly values**. 
-<br>
-<br>
-* Meteorological data were **available for all cases and controls**.
+* The hourly and daily values for the respective parameters were determined by **calculating the spatial median value based of the three stations (n=3; 400, 403, 427)**. 
 <br>
 <br>
 * **Summary statistics table** showed annual values for all parameters for the time from **February 1, 2017, to December 31,2020**. 
@@ -1255,6 +1290,7 @@ DWD_dat_pandemic <- DWD_dat_pandemic %>%
 
 all_dat <- left_join(DWD_dat_pandemic, exposure_pandemic, by = "case_time")
 
+#complete_dat
 dat_compl <- all_dat 
 
 summary_tbl_complete_dat <- list(
@@ -1442,18 +1478,21 @@ tbl_2020 <- summary_table(dat_2020, summary_tbl_2020)
 ```
 
 ```{r, tbl_compl, results='asis',echo=TRUE}
+# merge tables
 tbl_compl <- cbind(tbl_compl_dat, tbl_2017, tbl_2018, tbl_2019, tbl_2020)
-colnames(tbl_compl) <- c("Total","2017", "2018","2019","2020")
+colnames(tbl_compl) <- c(" ", "Total","2017", "2018","2019","2020")
 print(tbl_compl)
 
+#tbl_compl_df <- as.data.frame(tbl_compl) 
+#write.csv2(tbl_compl_df, file = "S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\24102023_tab_DWD_BLUME.csv")
 
 ```
 
 
 
-### DWD distribution {.tabset}
+### Distribution of the meteorological data {.tabset}
 
-* All parameters show a **non-linear distribution or deviations from normal distribution**, respectively.
+* All parameters showed a **non-linear distribution or deviations from normal distribution**.
 <br>
 <br>
 * **Short summary of visual inspection**:
@@ -1468,30 +1507,28 @@ c) **Temperature (TM)**: M-shape in histogram (greater peak at approximately 10�
 * **PM2.5 values had the strongest correlation with** 
 a) **relative humidity** (RH; weak positive correlation, r=0.32), 
 b) **temperature** (TM; weak negative correlation, r=-0.30) and 
+c) differed when stratified by weekday, daytime or public holiday.
 <br>
 <br>
-* Number of total strokes differ when stratifying by weekday, daytime or public holiday (see table below)
-<br>
-<br>
-![Javatpoint](corrplot_DWD-BLUME.png) 
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\corrplot_DWD-BLUME.png) 
 
 * Histogram and Q-Q-plot for air pressure 
-![Javatpoint](hist_DWD_AP_day.png) 
-![Javatpoint](QQplot_DWD_AP_day.png) 
-![Javatpoint](hist_DWD_AP_hour.png) 
-![Javatpoint](QQplot_DWD_AP_hour.png) 
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\hist_DWD_AP_day.png) 
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\QQplot_DWD_AP_day.png) 
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\hist_DWD_AP_hour.png) 
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\QQplot_DWD_AP_hour.png) 
 
 * Histogram and Q-Q-plot for temperature
-![Javatpoint](hist_DWD_TM_day.png) 
-![Javatpoint](QQplot_DWD_TM_day.png) 
-![Javatpoint](hist_DWD_TM_hour.png) 
-![Javatpoint](QQplot_DWD_TM_hour.png) 
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\hist_DWD_TM_day.png) 
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\QQplot_DWD_TM_day.png) 
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\hist_DWD_TM_hour.png) 
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\QQplot_DWD_TM_hour.png) 
 
 * Histogram and Q-Q-plot for relative humidity
-![Javatpoint](hist_DWD_RH_day.png) 
-![Javatpoint](QQplot_DWD_RH_day.png) 
-![Javatpoint](hist_DWD_RH_hour.png) 
-![Javatpoint](QQplot_DWD_RH_hour.png) 
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\hist_DWD_RH_day.png) 
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\QQplot_DWD_RH_day.png) 
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\hist_DWD_RH_hour.png) 
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\QQplot_DWD_RH_hour.png) 
 
 
 
@@ -1503,18 +1540,13 @@ b) **temperature** (TM; weak negative correlation, r=-0.30) and
 ## Methods {.tabset .tabset-fade .tabset-pills}
 ### DAG {.tabset}
 
-* Information on **potential confounding is informed by**
-<br><br>
- a) a **screening of the current literature** (included only studies with a case-crossover-design assessing the association of PM 2.5 and stroke)
- <br><br>
- b) the **given data and correlation analyses** (PM 2.5 and meteorological parameters)
-  <br><br>
-c) **expert knowledge**
-  <br><br>
-d) **archives of pandemic measures in Germany from the Robert-Koch-Institute (RKI)** (pandemic measures)<br>
- according to RKI nationwide restrictions started at the 14th of March 2020
-  <br><br>
-![Javatpoint](02072024_DAG_update_screen.png) 
+* Potential confounding variables were identified through literature screening and input from topic experts.
+<br>
+<br>
+* The resulting causal framework was compiled into a Directed Acyclic Graph (DAG).
+<br>
+<br>
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\DAGITTY\\02072024_DAG_update_screen.png) 
 <br>
 <br>
 ```{r, number_holidays3,  echo=TRUE, results='asis'}
@@ -1532,10 +1564,14 @@ dat_total <- dat_total %>%
 mutate(weekday = weekdays(all_time)) %>% 
   mutate(all_date = date(all_time))
 
+#holidays <- as.Date(holidays)
+#dat_total$all_date <- as.Date(dat_total$all_date)
+#dat_total$holidays <- ifelse(dat_total$all_date %in% holidays, "Yes", "No")
 
 dat_total <- dat_total %>%   
-  mutate(time = as_hms(ymd_hms(all_time))) 
-dat_total$time <- hour(dat_total$time)
+#   mutate(time = as_hms(ymd_hms(all_time))) 
+  mutate(time = hour(all_time))
+# dat_total$time <- hour(dat_total$time)
 
 dat_total <- dat_total  %>% 
   mutate(time1 = ifelse(time %in% first_time, "Yes", "No")) %>% 
@@ -1567,8 +1603,9 @@ mutate(weekday = weekdays(case_time)) %>%
 
 dat_cases <- dat_cases %>%   
   mutate(holiday = case_when(adm_time %in% holidays ~ "Yes", TRUE ~ "No")) %>% 
-  mutate(time = as_hms(ymd_hms(case_time))) 
-dat_cases$time <- hour(dat_cases$time)
+#  mutate(time = as_hms(ymd_hms(case_time))) 
+  mutate(time = hour(case_time))
+#dat_cases$time <- hour(dat_cases$time)
 
 dat_cases <- dat_cases  %>% 
   mutate(time1 = ifelse(time %in% first_time, "Yes", "No")) %>% 
@@ -1598,8 +1635,9 @@ dat_control <- dat_control %>%
   mutate(control_date = date(control_time))
 
 dat_control <- dat_control %>%   
-  mutate(time = as_hms(ymd_hms(control_time))) 
-dat_control$time <- hour(dat_control$time)
+#  mutate(time = as_hms(ymd_hms(control_time))) 
+  mutate(time = hour(control_time))
+#dat_control$time <- hour(dat_control$time)
 
 dat_control <- dat_control  %>% 
   mutate(time1 = ifelse(time %in% first_time, "Yes", "No")) %>% 
@@ -1616,10 +1654,15 @@ summary_time_control1 <- list(
     "Non public holiday" = ~ median(dat_control$pm25_median_h[dat_control$holidays == "No"], na_rm = TRUE, show_denom = "never"))
 )
 
+
+
 tbl_time_control <- summary_table(dat_control, summary_time_control1)
 
+
+
+# putting columns together and print final version:
 table_time_complete <- cbind(tbl_time_total, tbl_time_case, tbl_time_control)
-colnames(table_time_complete) <- c("Total", "Cases", "Controls")
+colnames(table_time_complete) <- c(" ", "Total", "Cases", "Controls")
 print(table_time_complete, rtitle = "Total number of all cases and controls and median PM 2.5 concentrations stratified by public holiday")
 
 
@@ -1643,6 +1686,8 @@ summary_time_total_pan <- list(
 
 
 tbl_time_total_pan <- summary_table(dat_total_pan, summary_time_total_pan)
+
+
 
 
 dat_cases_pan <- dat_analysis_pan_adj %>%
@@ -1677,7 +1722,7 @@ tbl_time_total_pan_control <- summary_table(dat_control_pan, summary_time_contro
 
 # putting columns together and print final version:
 table_time_complete_pan <- cbind(tbl_time_total_pan, tbl_time_total_pan_case, tbl_time_total_pan_control)
-colnames(table_time_complete_pan) <- c("Total", "Cases", "Controls")
+colnames(table_time_complete_pan) <- c(" ", "Total", "Cases", "Controls")
 print(table_time_complete_pan, rtitle = "Total number of all cases and controls and median PM 2.5 concentrations stratified by pandemic")
 
 
@@ -1686,35 +1731,43 @@ print(table_time_complete_pan, rtitle = "Total number of all cases and controls 
 
 
 ### Dataset{.tabset}
-* The original **time-series data format** was transferred into an **expanded matched case-control structure** (Yao Wu et al., 2021; Armstrong et al., 2014; Zhao, 2016; Mostofsky et al., 2018). The basic structure can be seen in the example below.
+* The original **time-series data format** was transferred into an **expanded matched case-control structure** (Yao Wu et al., 2021; Armstrong et al., 2014; Zhao, 2016; Mostofsky et al., 2018).
 <br>
 <br>
-* The individual **times of the symptom onset were rounded** to fit the time information to the exposure and adjustment data. 
+* The **times of the symptom onset were rounded to the fullest hour** to fit the time information to the exposure and adjustment data.
 <br>
 <br>
+```{r analysis-dataset, echo=TRUE, results='asis'}
+# example_dataset <- dat_analysis %>% 
+#   select(pat_id_exp, strata, stroke,case_time, control_dates, all_dates, pm25_median_h_Z, hour_med_TM, hour_med_RH) %>% 
+#   head(20)
+# 
+# print(example_dataset)
+
+```
 <br>
 <br>
-![Javatpoint](screen_datastructure.png) 
+![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\screen_datastructure.png) 
 
 
 ### Main analyses {.tabset}
 
 **Main analyses method**:
 <br>
-**Conditional logistic regression (CLR)** will be applied to assess the association of stroke and PM2.5 short-term exposure. Therefore, the **clogit()-function of the {survival}-package** and the **gam()-function of the {mgcv}-package** in R will be mainly used. Both functions calculate the CLR loglikelihood on the basis of a stratified Cox model (https://www.rdocumentation.org/packages/survival/versions/3.5-7/topics/clogit). 
+**Conditional logistic regression (CLR)** was applied to assess the association of stroke and PM2.5 short-term exposure. Therefore, the **clogit()-function of the {survival}-package** and the **gam()-function of the {mgcv}-package** was used. Both functions calculate the CLR loglikelihood on the basis of a stratified Cox model (https://www.rdocumentation.org/packages/survival/versions/3.5-7/topics/clogit). 
 <br>
-The **number of degrees for freedom for each meteorological covariate and each model analyses type** will be specified by calculating the **Akaike information criterion (AIC)** for a range of potential df from one to ten. The **model with the lowest AIC value** will be considered for the main and sensitivity analyses.
+The **number of degrees for freedom for each meteorological covariate and each model analyses type** was specified by calculating the **Akaike information criterion (AIC)** for a range of potential df from one to ten. The **model with the lowest AIC value** was considered for the main and sensitivity analyses.
 <br>
 <br>
 <br>
 <br>
 **Adjustments**:
 <br>
-To adjust for temperature, barometric pressure and relative humidity **natural splines** will be included into the **clogit-function**. **Polynomial terms** and the **gam-function** (with the inner s-function) will be conducted as **sensitivity analyses**.
+To adjust for temperature, barometric pressure and relative humidity **natural splines** were included into the **clogit-function**. **Polynomial terms** and the **gam-function** (with the inner s-function) ere conducted as **sensitivity analyses**.
 <br>
 <br>
 Recognizing **public holidays and pandemic measures as potential confounders of PM 2.5 concentration and stroke occurrence**, all public holidays between February 2017 and December 2020 and periods with repeated government-mandated pandemic measures were **included as binary indicator variables**. <br><br>
-**Chosen timeframe of adjustment of pandemic measures**: Starting on March 14, 2020, pandemic-related nationwide measures were implemented (https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Situationsberichte/2020-03-14-de.html). From this date until December 31, 2020, routine life was not fully restored, with varying degrees of measures in place throughout the period.
+**Chosen timeframe of adjustment of pandemic measures**: Starting on March 13, 2020, pandemic-related nationwide measures were implemented (https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Situationsberichte/2020-03-14-de.html). From this date until December 31, 2020, routine life was not fully restored, with varying degrees of measures in place throughout the period.
 <br>
 <br>
 <br>
@@ -2429,7 +2482,9 @@ summary(model11_gam_pan_adj)
 
 #### **Research question 1**: 
 <br>
-Is there an **association between short-term PM2.5 exposure and the odds of stroke (time of the symptom onset) among participants in the B-SPATIAL cohort**?
+<br>
+**RQ1**: Is there an **association between short-term increases in PM2.5 concentration and the odds of ischemic stroke and transient ischemic attacks among participants of the Berlin-based B-SPATIAL stroke registry**?
+<br>
 <br>
 <br>
 ```{r, prim_results1, results='asis',echo=TRUE}
@@ -2477,7 +2532,9 @@ modelsummary(model1,
 ### Secondary Analysis 1
 
 #### **Research question 2**: <br>
-If there is an association between PM2.5 short-term exposure and stroke, **at which time lag is it the strongest** (based on hours and the symptom onset time; Lags: **6-36 hours (single hour steps)**, **06-36 hours (cumulative hourly intervals)**.
+<br>
+<br>
+ If there is an association between PM2.5 short-term exposure and stroke, **at which time lag is it the strongest** (based on hours and the symptom onset time; Lags: **6-36 hours (single hour steps)**, **06-36 hours (cumulative hourly intervals)**.
 <br>
 <br>
 
@@ -2847,7 +2904,8 @@ modelsummary(model2_lag_df_1,
 
 
 ### Secondary Analysis 2
-
+<br>
+<br>
 #### **Research question 2**: <br>
 If there is an association between PM2.5 short-term exposure and stroke, **at which time lag is it the strongest** (based on hours and the symptom onset time; Lags: **6-36 hours (single hour steps)**, **06-36 hours (cumulative hourly intervals)**.
 <br>
@@ -3225,6 +3283,7 @@ print(model_sens_nsk_print)
 
 
 # poly
+
 model_sens_poly<- list(
   "Adjusted Model with degree for AP / RH / TM  = 1 (poly)" = clogit(stroke ~ pm25_median_h_Z +strata(strata) + 
                                    I(hour_med_AP^1) +  
@@ -3688,7 +3747,7 @@ summary_tbl_2020_pand <- list(
 tbl_2020_pand <- summary_table(dat_2020_pand, summary_tbl_2020_pand)
 
 tbl_compl_pand <- cbind(tbl_2017_pand, tbl_2018_pand, tbl_2019_pand, tbl_2020_pand)
-colnames(tbl_compl_pand) <- c("2017", "2018","2019","2020")
+colnames(tbl_compl_pand) <- c(" ", "2017", "2018","2019","2020")
 print(tbl_compl_pand)
 
 ```
@@ -4524,9 +4583,9 @@ options(digits = 7)
 
 #### load
 
-geo_DE <- read.delim("DE.txt")
-geo_plz_berlin <- geojson_sf("plz-berlin.geojson")
-zip_pop <- read_csv("25072024_zip_population.csv")
+geo_DE <- read.delim("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\sens_analysis_km\\DE.txt")
+geo_plz_berlin <- geojson_sf("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\maps\\plz-berlin.geojson")
+zip_pop <- read_csv("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\042024_code_review\\25072024_zip_population.csv")
 zip_pop <- zip_pop %>%
     separate(`zip;population`, into = c("zip", "population"), sep = ";") %>% 
   rename(zip_code = zip)
@@ -4570,6 +4629,12 @@ comb_geo_Berlin <- comb_geo_Berlin %>%
                        labels = c("0-99", "100-199", "200+"), 
                        include.lowest = TRUE))
 
+#inc_cat_quant <- quantile(comb_geo_Berlin$incidence_100, probs = seq(0,1, length.out = 5)) 
+
+#comb_geo_Berlin <- comb_geo_Berlin %>%  
+#  mutate(inc_cat = cut(incidence_100, breaks = inc_cat_quant, labels = c("Low", "Medium-Low", "Medium-High", "High"), include.lowest = TRUE)) 
+
+#print(comb_geo_Berlin)
 BLUME_MC <- data.frame(longitude = c(13.34994, 
                                      13.430927,
                                      13.417765,
@@ -4640,6 +4705,8 @@ DWD_MC_sf_buffered <- st_buffer(DWD_MC_sf, dist = 5000) # distance in meters
 
 geo_Berlin_sf <- st_as_sf(comb_geo_Berlin, coords = c("longitude", "latitude"), crs = 4326)
 
+#geo_Berlin_sf_buffered <- st_buffer(geo_Berlin_sf, dist = 5000) # distance in meters
+
 
 # map with incidence (coloured)
 geo_Berlin_inc_100_col <- ggplot() +
@@ -4691,7 +4758,44 @@ geo_Berlin_inc_100_shape <- ggplot() +
 
 print(geo_Berlin_inc_100_shape)
 
+
+
+
+  
+
+# # map with strokes and grouped stations (colours)
+# geo_Berlin_plz_stroke_col_single <- ggplot() +
+#   geom_sf(data = st_as_sf(geo_plz_berlin), fill = "white") +
+#   geom_point(data = comb_geo_Berlin, aes(x = longitude, y = latitude, colour = count),
+#              size = 3) +
+#   geom_sf(data = BLUME_BG_MC_sf_buffered, fill = "orange4", color = "orange4", alpha = 0.3, size = 10) +
+#   geom_sf(data = BLUME_OS_MC_sf_buffered, fill = "palegreen4", color = "palegreen4", alpha = 0.3, size = 10) +
+#   geom_sf(data = BLUME_T_MC_sf_buffered, fill = "red4", color = "red4", alpha = 0.3, size = 10) +
+#   geom_sf(data = BLUME_BG_MC_sf, fill = "orange4", color = "black", alpha = 1, size = 2) +
+#   geom_sf(data = BLUME_OS_MC_sf, fill = "palegreen4", color = "black", alpha = 1, size = 2) +
+#   geom_sf(data = BLUME_T_MC_sf, fill = "red4", color = "black", alpha = 1, size = 2) +
+#   geom_text(data = comb_geo_Berlin, aes(x = longitude, y = latitude, label = count),
+#             size = 2, color = "white") +
+#   coord_sf(xlim = c(13.0, 13.8), ylim = c(52.3, 52.7), expand = FALSE) +
+#   labs(
+#     title = "Ischemic stroke occurence by Berlin zip code areas",
+#     subtitle = "February 1, 2017 to March 20, 2020",
+#     caption = "https://daten.odis-berlin.de/") +
+#   theme(plot.title = element_text(size = 8.5), plot.subtitle = element_text(size = 8), plot.caption = element_text(size = 6))  + 
+#   scale_color_gradient(low="blue", high="red") + 
+#   labs(colour = "Strokes per area", size = 0.5)
+# 
+# print(geo_Berlin_plz_stroke_col_single)
+# 
+# ggsave("29022024_first_draft_smaller.png", geo_Berlin_plz_stroke_col_single, dpi = 800)
+
+
+
+
+
+
 # map with DWD MC BG
+
 
 geo_Berlin_DWD_cov <- ggplot() +
   geom_sf(data = st_as_sf(geo_plz_berlin), fill = "white") +
@@ -4754,6 +4858,25 @@ geo_Berlin_BLUME_cov <- ggplot() +
 print(geo_Berlin_BLUME_cov)
 
 
+# # map with zip codes
+# geo_Berlin_plz <- ggplot() +
+#   geom_sf(data = st_as_sf(geo_plz_berlin), fill = "antiquewhite") +
+#   geom_sf(data = BLUME_MC_sf_buffered, fill = "darkgreen", alpha = 0.2, size = 1.5) +
+#   geom_text(data = comb_geo_Berlin, aes(x = longitude, y = latitude, label = zip_code),
+#             size = 1, color = "darkred") +
+#   geom_point(data = BLUME_MC, aes(x = longitude, y = latitude), size = 1, 
+#              shape = 20, colour = "black", stroke = 1) +
+#   coord_sf(xlim = c(13.0, 13.8), ylim = c(52.3, 52.7), expand = FALSE) +
+#   labs(
+#     title = "Berlin zip codes areas with numbers of B-SPATIAL ischemic strokes",
+#     subtitle = "February 1, 2017 to March 20, 2020; 5 km radius around BG stations",
+#     caption = "https://daten.odis-berlin.de/"
+#   ) +
+#   theme(plot.title = element_text(size = 8.5), plot.subtitle = element_text(size = 8), plot.caption = element_text(size = 6))
+# 
+# 
+# print(geo_Berlin_plz)
+
 ```
 
 <br><br>
@@ -4792,10 +4915,10 @@ rownames(corr_pear) <- c("PM 2.5", "AP", "RH", "TM")
 
 
 ### Limitations
-* **Testing graphical causal models** was not successful
+* **Testing graphical causal models** was not feasible.
 <br>
 <br>
-* **Measurement error analyses** was not feasible due to low number of zip-code information
+* **Measurement error analyses** was not succesful due to a low number of zip-code information.
 <br>
 <br>
 
@@ -4817,8 +4940,4 @@ Bar 4
 <!-- next main tab -->
 
 
-<br>
-<br>
-c) **Measurement error analysis** with available zip-code data
-<br>
-<br>
+
