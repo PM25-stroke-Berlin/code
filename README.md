@@ -4,9 +4,9 @@ We assessed the short-term association of particulate matter with a diameter of 
 
 For transparency and reproducibility, this repository provides:
 
-  ### PM_25_and_stroke_in_Berlin-Germany_dat_analysis.rmd: R code for data preparation and implementation of the case-crossover design.
+  #### PM_25_and_stroke_in_Berlin-Germany_dat_analysis.rmd: R code for data preparation and implementation of the case-crossover design.
 
-  ### PM_25_and_stroke_in_Berlin-Germany.rmd / .html: R Markdown document presenting the study concept, results, figures, and tables.
+  #### PM_25_and_stroke_in_Berlin-Germany.rmd / .html: R Markdown document presenting the study concept, results, figures, and tables.
 
 
 ## Abstract: 
