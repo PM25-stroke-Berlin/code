@@ -13,7 +13,7 @@ For transparency and reproducibility, this repository provides:
 ## Title: 
 The short-term association of particulate matter with a diameter of less than 2.5 micrometers (PM2.5 ) on stroke: A time-stratified case-crossover study in Berlin, Germany
 
-# Background: 
+### Background: 
 This study investigated the association of short-term exposure to PM2.5 on occurrence of ischemic stroke and transient ischemic attacks between February 2017 and December 2020 in Berlin, Germany.
 
 # Methods: 
