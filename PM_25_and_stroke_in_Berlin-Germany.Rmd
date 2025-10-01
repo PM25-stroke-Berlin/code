@@ -12,15 +12,10 @@ editor_options:
   chunk_output_type: console
 ---
 
-<!-- ```{js, include=FALSE} -->
-<!-- document.addEventListener("DOMContentLoaded", function() { -->
-<!--   $(".leave-tabset").removeClass("tab-pane tabbed-pane"); -->
-<!-- }, false); -->
-<!-- ``` -->
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-.libPaths("T:\\Dokumente\\R\\win-library\\4.1\\")
+
 library(lubridate)
 library(dplyr)
 library(tidyverse)
@@ -57,56 +52,45 @@ options(digits = 5)
 
 
 # working directory
-setwd("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\042024_code_review")
+setwd("042024_code_review")
 ```
 
 
 ```{r load, include=FALSE}
 # load data
-#load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\12032024_exposure.RData")
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\07082024_exposure.RData")
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\12032024_exposure_pandemic.RData")
-#load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\18042024_exposure_only_pandemic.RData")
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\07082024_exposure_only_pandemic.RData") #26072024_exposure_only_pandemic.RData
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\26062024_BLUME_raw_prep.RData")
+#load("12032024_exposure.RData")
+load("07082024_exposure.RData")
+load("12032024_exposure_pandemic.RData")
+load("07082024_exposure_only_pandemic.RData") #26072024_exposure_only_pandemic.RData
+load("26062024_BLUME_raw_prep.RData")
+load("08082024_outcome.RData")
+load("08082024_outcome_pandemic.RData")
+load("12032024_km_outcome_zip.RData")
+load("07082024_DWD.RData")
+load("26072024_DWD_pandemic.RData")
+load("07082024_DWD_only_pandemic.RData")
+load("08082024_dat_analysis.RData")
+load("08082024_dat_analysis_pandemic.RData")
+load("08082024_dat_analysis_only_pandemic.RData")
+load("08082024_dat_analysis_pan_adj.RData")
 
-
-#load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\12032024_exposure_Z_010.RData")
-#load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\12032024_exposure_Z_042.RData")
-#load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\12032024_exposure_Z_171.RData")
-
-
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\08082024_outcome.RData")
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\08082024_outcome_pandemic.RData")
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\12032024_km_outcome_zip.RData")
-
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\07082024_DWD.RData")
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\26072024_DWD_pandemic.RData")
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\07082024_DWD_only_pandemic.RData")
-
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\08082024_dat_analysis.RData")
-#load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\23042024_dat_analysis.RData")
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\08082024_dat_analysis_pandemic.RData")
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\08082024_dat_analysis_only_pandemic.RData")
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\08082024_dat_analysis_pan_adj.RData")
-
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\23042024_dat_analysis_Z_010.RData")
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\23042024_dat_analysis_Z_042.RData")
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\23042024_dat_analysis_Z_171.RData")
+load("23042024_dat_analysis_Z_010.RData")
+load("23042024_dat_analysis_Z_042.RData")
+load("23042024_dat_analysis_Z_171.RData")
 dat_analysis_clust <- bind_rows(dat_analysis_Z_010, dat_analysis_Z_042, dat_analysis_Z_171)
-#save(dat_analysis_clust, file = "S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\12032024_dat_analysis_clust.RData")
+#save(dat_analysis_clust, file = "12032024_dat_analysis_clust.RData")
 
-stroke_dat <-  read_csv("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\Data\\31-08-31_1431_Export_B-SPATIAL_PM25.csv") 
+stroke_dat <-  read_csv("31-08-31_1431_Export_B-SPATIAL_PM25.csv") 
 stroke_dat <- stroke_dat %>% 
   mutate(year = year(stroke_dat$onset_symp_time), month = month(stroke_dat$onset_symp_time))
 
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\model11_gam.RData")
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\model11_gam_pan_adj.RData")
-load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\model11_gam_lock_adj.RData")
+load("model11_gam.RData")
+load("model11_gam_pan_adj.RData")
+load("model11_gam_lock_adj.RData")
 
-tbl_holiday <- read.csv2("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\28102023_public_holidays_table.csv")
+tbl_holiday <- read.csv2("28102023_public_holidays_table.csv")
 
-#load("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\19122023_hour_day_exposure.RData") # for ACF day calculation
+#load("19122023_hour_day_exposure.RData") # for ACF day calculation
 
 ```
 
@@ -149,7 +133,7 @@ sessionInfo()
 <br>
 <br>
 <br>
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\hist_freq_adm_bspatial.png) 
+![Javatpoint](hist_freq_adm_bspatial.png) 
 
 
 
@@ -691,15 +675,15 @@ print(dens_symp_onset_cases_controls)
 * The BLUME PM2.5 air pollution data are available on the website https://luftdaten.berlin.de/pollution/pm25
 <br>
 <br>
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\map_berlin_BLUME.png) 
+![Javatpoint](map_berlin_BLUME.png) 
 <br><br>
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\map_berlin_BLUME_street.png) 
+![Javatpoint](map_berlin_BLUME_street.png) 
 <br><br>
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\plot_BLUME-background_month.png)  
+![Javatpoint](plot_BLUME-background_month.png)  
 <br><br>
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\corrplot_BLUMEback.png)  
+![Javatpoint](corrplot_BLUMEback.png)  
 <br><br>
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\corrplot_BLUMEall.png)  
+![Javatpoint](corrplot_BLUMEall.png)  
 
 
 
@@ -1138,15 +1122,15 @@ print(tbl_compl_pm25, rtitle = "Median hourly concentration of PM2.5 stratified 
 
 <br>
 <br>
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\boxplot_BLUME_month.png)  
+![Javatpoint](boxplot_BLUME_month.png)  
 <br><br>
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\hist_BLUME_background.png)  
+![Javatpoint](hist_BLUME_background.png)  
 <br><br>
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\hist_BLUME_background_days.png)  
+![Javatpoint](hist_BLUME_background_days.png)  
 <br><br>
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\QQplot_BLUME_background.png)  
+![Javatpoint](QQplot_BLUME_background.png)  
 <br><br>
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\QQplot_BLUME_background_days.png) 
+![Javatpoint](QQplot_BLUME_background_days.png) 
 
 <br>
 <br>
@@ -1243,7 +1227,7 @@ print(acf_BLUME_168h_total)
 * **Map description**: The 3 background BLUME stations are represented by the green points. The 3 red points represent the monitoring stations of the German Weather Service.
 <br>
 <br>
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\plots\\23042024_map_all_stations.png) 
+![Javatpoint](23042024_map_all_stations.png) 
 <br><br>
 
 
@@ -1483,8 +1467,6 @@ tbl_compl <- cbind(tbl_compl_dat, tbl_2017, tbl_2018, tbl_2019, tbl_2020)
 colnames(tbl_compl) <- c(" ", "Total","2017", "2018","2019","2020")
 print(tbl_compl)
 
-#tbl_compl_df <- as.data.frame(tbl_compl) 
-#write.csv2(tbl_compl_df, file = "S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\24102023_tab_DWD_BLUME.csv")
 
 ```
 
@@ -1510,25 +1492,25 @@ b) **temperature** (TM; weak negative correlation, r=-0.30) and
 c) differed when stratified by weekday, daytime or public holiday.
 <br>
 <br>
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\corrplot_DWD-BLUME.png) 
+![Javatpoint](corrplot_DWD-BLUME.png) 
 
 * Histogram and Q-Q-plot for air pressure 
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\hist_DWD_AP_day.png) 
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\QQplot_DWD_AP_day.png) 
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\hist_DWD_AP_hour.png) 
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\QQplot_DWD_AP_hour.png) 
+![Javatpoint](hist_DWD_AP_day.png) 
+![Javatpoint](QQplot_DWD_AP_day.png) 
+![Javatpoint](hist_DWD_AP_hour.png) 
+![Javatpoint](QQplot_DWD_AP_hour.png) 
 
 * Histogram and Q-Q-plot for temperature
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\hist_DWD_TM_day.png) 
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\QQplot_DWD_TM_day.png) 
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\hist_DWD_TM_hour.png) 
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\QQplot_DWD_TM_hour.png) 
+![Javatpoint](hist_DWD_TM_day.png) 
+![Javatpoint](QQplot_DWD_TM_day.png) 
+![Javatpoint](hist_DWD_TM_hour.png) 
+![Javatpoint](QQplot_DWD_TM_hour.png) 
 
 * Histogram and Q-Q-plot for relative humidity
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\hist_DWD_RH_day.png) 
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\QQplot_DWD_RH_day.png) 
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\hist_DWD_RH_hour.png) 
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\QQplot_DWD_RH_hour.png) 
+![Javatpoint](hist_DWD_RH_day.png) 
+![Javatpoint](QQplot_DWD_RH_day.png) 
+![Javatpoint](hist_DWD_RH_hour.png) 
+![Javatpoint](QQplot_DWD_RH_hour.png) 
 
 
 
@@ -1546,7 +1528,7 @@ c) differed when stratified by weekday, daytime or public holiday.
 * The resulting causal framework was compiled into a Directed Acyclic Graph (DAG).
 <br>
 <br>
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\DAGITTY\\02072024_DAG_update_screen.png) 
+![Javatpoint](02072024_DAG_update_screen.png) 
 <br>
 <br>
 ```{r, number_holidays3,  echo=TRUE, results='asis'}
@@ -1747,7 +1729,7 @@ print(table_time_complete_pan, rtitle = "Total number of all cases and controls 
 ```
 <br>
 <br>
-![Javatpoint](S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\MSc_thesis-PM25_stroke\\screen_datastructure.png) 
+![Javatpoint](screen_datastructure.png) 
 
 
 ### Main analyses {.tabset}
@@ -4583,9 +4565,9 @@ options(digits = 7)
 
 #### load
 
-geo_DE <- read.delim("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\sens_analysis_km\\DE.txt")
-geo_plz_berlin <- geojson_sf("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\maps\\plz-berlin.geojson")
-zip_pop <- read_csv("S:\\Fakultaet\\MFZ\\MFZ-CSB\\REG-B-SPATIAL\\Jakob\\PM25_stroke\\IS_TIA\\042024_code_review\\25072024_zip_population.csv")
+geo_DE <- read.delim("sens_analysis_km\\DE.txt")
+geo_plz_berlin <- geojson_sf("plz-berlin.geojson")
+zip_pop <- read_csv("25072024_zip_population.csv")
 zip_pop <- zip_pop %>%
     separate(`zip;population`, into = c("zip", "population"), sep = ";") %>% 
   rename(zip_code = zip)
@@ -4938,6 +4920,7 @@ Foot 4
 Bar 4
 
 <!-- next main tab -->
+
 
 
 
