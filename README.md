@@ -16,6 +16,10 @@ Exposure to fine particulate matter (PM2.5) is a major, potentially preventable 
 
 **Highlights**: 
 ●	Hourly city-wide PM2.5 and stroke symptom-onset data enabled high-resolution analysis.
+
 ●	Increases in PM2.5 exposure were most strongly associated with instant stroke symptom onset.
+
 ●	Lagged analyses revealed variable PM2.5 patterns preceding stroke onset.
+
 ●	Our findings add evidence from a European capital with declining pollution levels.
+
