@@ -15,6 +15,7 @@ Exposure to fine particulate matter (PM2.5) is a major, potentially preventable 
 **Keywords**: Ischemic stroke, transient ischemic attack, air pollution, short-term exposure, time-stratified design, Europe
 
 **Highlights**: 
+
 ●	Hourly city-wide PM2.5 and stroke symptom-onset data enabled high-resolution analysis.
 
 ●	Increases in PM2.5 exposure were most strongly associated with instant stroke symptom onset.
